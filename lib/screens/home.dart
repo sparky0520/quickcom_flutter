@@ -24,7 +24,7 @@ class _HomeScreenState extends State<HomeScreen> {
       _error = null;
     });
 
-    final url = Uri.http('192.168.1.10:5000', '/prices/$query');
+    final url = Uri.http('192.168.1.6:5000', '/prices/$query');
 
     try {
       final response = await http.get(url);
@@ -53,11 +53,11 @@ class _HomeScreenState extends State<HomeScreen> {
               price: int.parse(product['price'].replaceAll('₹', '')),
               quantity: product['quantity'],
               title: product['title'],
+              imageUrl: product['image'],
             ),
           );
         }
       }
-
       setState(() {
         _isLoading = false;
         _products = temp;
@@ -78,8 +78,9 @@ class _HomeScreenState extends State<HomeScreen> {
             child: GridView.builder(
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,
-                crossAxisSpacing: 12,
-                mainAxisSpacing: 12,
+                crossAxisSpacing: 8,
+                mainAxisSpacing: 8,
+                mainAxisExtent: 300,
               ),
               itemCount: _products.length,
               itemBuilder: (ctx, index) {
@@ -88,18 +89,22 @@ class _HomeScreenState extends State<HomeScreen> {
                     border: Border.all(width: 1, color: Colors.black38),
                   ),
                   child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
-                      Text(_products[index].platform),
+                      Text(
+                        _products[index].platform[0].toUpperCase() +
+                            _products[index].platform.substring(1),
+                      ),
                       if (_products[index].imageUrl != null)
-                        Image.network(_products[index].imageUrl!),
+                        Image.network(
+                          _products[index].imageUrl!,
+                          fit: BoxFit.cover,
+                          width: 100,
+                          height: 100,
+                        ),
                       Text(_products[index].title),
                       Text(_products[index].quantity),
                       Text('₹${_products[index].price.toString()}'),
-                      TextButton.icon(
-                        onPressed: () {},
-                        icon: Icon(Icons.subdirectory_arrow_right),
-                        label: Text("Buy Now"),
-                      ),
                     ],
                   ),
                 );
@@ -123,41 +128,35 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return Scaffold(
       appBar: AppBar(title: Text("QuickCom")),
-      body: Container(
-        color: Colors.black12,
-        child: Padding(
-          padding: const EdgeInsets.all(12.0),
-          child: Column(
-            spacing: 12,
+      body: Column(
+        spacing: 12,
+        children: [
+          // Search Bar
+          Row(
             children: [
-              // Search Bar
-              Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _queryController,
-                      decoration: InputDecoration(
-                        label: Text("Type the product you want to search"),
-                      ),
-                    ),
+              Expanded(
+                child: TextField(
+                  controller: _queryController,
+                  decoration: InputDecoration(
+                    label: Text("Type the product you want to search"),
                   ),
-                  TextButton.icon(
-                    onPressed: () {
-                      if (_queryController.text.trim().isNotEmpty) {
-                        _fetchResults(_queryController.text.trim());
-                        _queryController.clear();
-                      }
-                    },
-                    icon: Icon(Icons.search),
-                    label: Text("Search"),
-                  ),
-                ],
+                ),
               ),
-
-              content,
+              TextButton.icon(
+                onPressed: () {
+                  if (_queryController.text.trim().isNotEmpty) {
+                    _fetchResults(_queryController.text.trim());
+                    _queryController.clear();
+                  }
+                },
+                icon: Icon(Icons.search),
+                label: Text("Search"),
+              ),
             ],
           ),
-        ),
+
+          content,
+        ],
       ),
     );
   }
