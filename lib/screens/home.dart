@@ -58,6 +58,10 @@ class _HomeScreenState extends State<HomeScreen> {
           );
         }
       }
+
+      // Sort by price - low to high
+      temp.sort((a, b) => a.price.compareTo(b.price));
+
       setState(() {
         _isLoading = false;
         _products = temp;
@@ -102,7 +106,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           width: 100,
                           height: 100,
                         ),
-                      Text(_products[index].title),
+                      Text(_products[index].title, textAlign: TextAlign.center),
                       Text(_products[index].quantity),
                       Text('₹${_products[index].price.toString()}'),
                     ],
@@ -128,35 +132,38 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return Scaffold(
       appBar: AppBar(title: Text("QuickCom")),
-      body: Column(
-        spacing: 12,
-        children: [
-          // Search Bar
-          Row(
-            children: [
-              Expanded(
-                child: TextField(
-                  controller: _queryController,
-                  decoration: InputDecoration(
-                    label: Text("Type the product you want to search"),
+      body: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Column(
+          spacing: 12,
+          children: [
+            // Search Bar
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _queryController,
+                    decoration: InputDecoration(
+                      label: Text("Type the product you want to search"),
+                    ),
                   ),
                 ),
-              ),
-              TextButton.icon(
-                onPressed: () {
-                  if (_queryController.text.trim().isNotEmpty) {
-                    _fetchResults(_queryController.text.trim());
-                    _queryController.clear();
-                  }
-                },
-                icon: Icon(Icons.search),
-                label: Text("Search"),
-              ),
-            ],
-          ),
+                TextButton.icon(
+                  onPressed: () {
+                    if (_queryController.text.trim().isNotEmpty) {
+                      _fetchResults(_queryController.text.trim());
+                      _queryController.clear();
+                    }
+                  },
+                  icon: Icon(Icons.search),
+                  label: Text("Search"),
+                ),
+              ],
+            ),
 
-          content,
-        ],
+            content,
+          ],
+        ),
       ),
     );
   }
