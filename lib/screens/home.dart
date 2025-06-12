@@ -17,14 +17,21 @@ class _HomeScreenState extends State<HomeScreen> {
   String? _error;
 
   final _queryController = TextEditingController();
+  final _urlController = TextEditingController();
 
-  void _fetchResults(String query) async {
+  Uri? _validateURL(String hostname, String query) {
+    try {
+      return Uri.parse('$hostname/prices/$query');
+    } catch (err) {
+      return null;
+    }
+  }
+
+  void _fetchResults(Uri url) async {
     setState(() {
       _isLoading = true;
       _error = null;
     });
-
-    final url = Uri.http('192.168.1.6:5000', '/prices/$query');
 
     try {
       final response = await http.get(url);
@@ -122,7 +129,16 @@ class _HomeScreenState extends State<HomeScreen> {
 
     // Loading indicator
     if (_isLoading) {
-      content = const Center(child: CircularProgressIndicator());
+      content = Column(
+        spacing: 12,
+        children: [
+          const Center(child: CircularProgressIndicator()),
+          const Text(
+            "All this is running on a free instance of Render. Have some patience. (50 seconds + 10 seconds worth)",
+            textAlign: TextAlign.center,
+          ),
+        ],
+      );
     }
 
     // Error screen
@@ -137,22 +153,41 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Column(
           spacing: 12,
           children: [
-            // Search Bar
-            Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _queryController,
-                    decoration: InputDecoration(
-                      label: Text("Type the product you want to search"),
-                    ),
-                  ),
+            // URL Bar
+            TextField(
+              controller: _urlController,
+              decoration: InputDecoration(
+                label: Text(
+                  "Enter the api url hostname eg. http://192.168.1.6:5000 (don't put slash)",
                 ),
+              ),
+            ),
+
+            // Search Bar
+            TextField(
+              controller: _queryController,
+              decoration: InputDecoration(
+                label: Text("Type the product you want to search"),
+              ),
+            ),
+
+            // Search button
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
                 TextButton.icon(
                   onPressed: () {
-                    if (_queryController.text.trim().isNotEmpty) {
-                      _fetchResults(_queryController.text.trim());
-                      _queryController.clear();
+                    if (_urlController.text.trim().isNotEmpty &&
+                        _queryController.text.trim().isNotEmpty) {
+                      final url = _validateURL(
+                        _urlController.text.trim(),
+                        _queryController.text.trim(),
+                      );
+                      if (url != null) {
+                        _fetchResults(url);
+                        _queryController.clear();
+                        _urlController.clear();
+                      }
                     }
                   },
                   icon: Icon(Icons.search),
@@ -160,7 +195,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ],
             ),
-
             content,
           ],
         ),
